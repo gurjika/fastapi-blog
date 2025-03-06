@@ -43,10 +43,6 @@ def create_post(post: Post):
     return {'message': post}
 
 
-@app.put('/posts/{id}')
-def update_post(post: Post, id: int):
-    cursor.execute("UPDATE ")
-
 
 @app.delete('/posts/{id}')
 def delete_post(id: int):
@@ -58,8 +54,8 @@ def delete_post(id: int):
 
 
 @app.put('/posts/{id}')
-def update_post(id: int, post: Post):
-    cursor.execute("""UPDATE posts SET title=%s, content=%s WHERE id=%s RETURNING *""", (post.title, post.content, post.id))
+def update_post(post: Post, id: int):
+    cursor.execute("""UPDATE posts SET title = %s, content = %s WHERE id = %s RETURNING *""", (post.title, post.content, id))   
     post = cursor.fetchone()
     validate_post(post)
     conn.commit()
