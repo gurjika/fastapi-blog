@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
 from fastapi.params import Body
 from pydantic import BaseModel
 from db import cursor, conn
@@ -16,6 +16,10 @@ class Post(BaseModel):
 
 
 
+def validate_post(post):
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='post not found')
+
 @app.get('/posts')
 def get_posts():
     cursor.execute("""SELECT * FROM posts""")
@@ -24,9 +28,10 @@ def get_posts():
 
 
 @app.get('/posts/{id}')
-def get_post(id):
-    cursor.execute("""SELECT * FROM posts WHERE id=%s""", (id))
+def get_post(id: int):
+    cursor.execute("""SELECT * FROM posts WHERE id=%s""", (str(id),))
     post = cursor.fetchone()
+    validate_post(post)
     return {'post': post}
 
 
@@ -36,3 +41,26 @@ def create_post(post: Post):
     post = cursor.fetchone()
     conn.commit()
     return {'message': post}
+
+
+@app.put('/posts/{id}')
+def update_post(post: Post, id: int):
+    cursor.execute("UPDATE ")
+
+
+@app.delete('/posts/{id}')
+def delete_post(id: int):
+    cursor.execute("""DELETE FROM posts WHERE id=%s RETURNING *""", (str(id), ))
+    post = cursor.fetchone()
+    validate_post(post)
+    conn.commit()
+    return {'deleted post': post}
+
+
+@app.put('/posts/{id}')
+def update_post(id: int, post: Post):
+    cursor.execute("""UPDATE posts SET title=%s, content=%s WHERE id=%s RETURNING *""", (post.title, post.content, post.id))
+    post = cursor.fetchone()
+    validate_post(post)
+    conn.commit()
+    return {'updated_post': post}
