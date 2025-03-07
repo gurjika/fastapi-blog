@@ -1,22 +1,18 @@
 from typing import Optional
-from fastapi import FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.params import Body
 from pydantic import BaseModel
 # from db import cursor, conn
 from . import models
-from db import engine, session_local
+from db import engine, get_db
+from sqlalchemy.orm import Session
 
-app = FastAPI()
+
 
 
 models.Base.metadata.create_all(bind=engine)
+app = FastAPI()
 
-def get_db():
-    db = session_local()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 class Post(BaseModel):
@@ -29,6 +25,15 @@ class Post(BaseModel):
 def validate_post(post):
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='post not found')
+
+@app.get('/posts')
+def get_posts(db: Session = Depends(get_db)):
+    posts = db.query(models.Post).all()
+    return {'message': posts}
+
+
+
+
 
 # @app.get('/posts')
 # def get_posts():
