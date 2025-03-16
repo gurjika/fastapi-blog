@@ -18,7 +18,6 @@ app = FastAPI()
 class Post(BaseModel):
     title: str
     content: str
-    rating: Optional[int] = None
 
 
 
@@ -49,7 +48,7 @@ def get_post(id: int, db: Session = Depends(get_db)):
     return {'post': post}
 
 
-@app.put('/posts/{id}')
+@app.delete('/posts/{id}')
 def delete_post(id: int, db: Session = Depends(get_db)):
     post = db.query(models.Post).filter(models.Post.id == id)
     validate_post(post.first())
@@ -61,12 +60,16 @@ def delete_post(id: int, db: Session = Depends(get_db)):
 
 @app.put('/posts/{id}')
 def update_post(post: Post, id: int, db: Session = Depends(get_db)):
-    post_query = db.query(models.Post).filter(models.Post.id == id)
-    validate_post(post_query.first())
-    post_query.update(post.model_dump())
+    update_post_query = db.query(models.Post).filter(models.Post.id == id)
+    update_post = update_post_query.first()
+    
+    validate_post(update_post)
+    
+    update_post_query.update(post.model_dump())
     db.commit()
     
-    return {'post': post}
+    db.refresh(update_post)
+    return {'post': update_post}
 
 
 # @app.get('/posts')
