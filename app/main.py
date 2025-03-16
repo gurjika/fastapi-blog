@@ -4,10 +4,10 @@ from fastapi.params import Body
 from pydantic import BaseModel
 # from db import cursor, conn
 from . import models
-from db import engine, get_db
+from app.db import engine, get_db
 from sqlalchemy.orm import Session
-
-
+from .schemas import PostCreate, PostBase
+ 
 
 
 models.Base.metadata.create_all(bind=engine)
@@ -15,9 +15,6 @@ app = FastAPI()
 
 
 
-class Post(BaseModel):
-    title: str
-    content: str
 
 
 
@@ -33,7 +30,7 @@ def get_posts(db: Session = Depends(get_db)):
 
 
 @app.post('/posts')
-def create_posts(post: Post, db: Session = Depends(get_db)):
+def create_posts(post: PostCreate, db: Session = Depends(get_db)):
     posts_dict = post.model_dump()
     new_post = models.Post(**posts_dict)
     db.add(new_post)
@@ -59,7 +56,7 @@ def delete_post(id: int, db: Session = Depends(get_db)):
 
 
 @app.put('/posts/{id}')
-def update_post(post: Post, id: int, db: Session = Depends(get_db)):
+def update_post(post: PostCreate, id: int, db: Session = Depends(get_db)):
     update_post_query = db.query(models.Post).filter(models.Post.id == id)
     update_post = update_post_query.first()
     
