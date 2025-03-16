@@ -49,6 +49,26 @@ def get_post(id: int, db: Session = Depends(get_db)):
     return {'post': post}
 
 
+@app.put('/posts/{id}')
+def delete_post(id: int, db: Session = Depends(get_db)):
+    post = db.query(models.Post).filter(models.Post.id == id)
+    validate_post(post.first())
+    post.delete()
+    db.commit()
+    
+    return {'post': post}
+
+
+@app.put('/posts/{id}')
+def update_post(post: Post, id: int, db: Session = Depends(get_db)):
+    post_query = db.query(models.Post).filter(models.Post.id == id)
+    validate_post(post_query.first())
+    post_query.update(post.model_dump())
+    db.commit()
+    
+    return {'post': post}
+
+
 # @app.get('/posts')
 # def get_posts():
 #     cursor.execute("""SELECT * FROM posts""")
