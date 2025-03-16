@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.params import Body
 from pydantic import BaseModel
@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from . import models
 from app.db import engine, get_db
 from sqlalchemy.orm import Session
-from .schemas import PostCreate, PostBase
+from .schemas import PostCreate, PostResponse
  
 
 
@@ -22,51 +22,52 @@ def validate_post(post):
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='post not found')
 
-@app.get('/posts')
+
+
+@app.get('/posts', response_model=List[PostResponse])
 def get_posts(db: Session = Depends(get_db)):
     posts = db.query(models.Post).all()
-    return {'message': posts}
+    return posts
 
 
-
-@app.post('/posts')
+@app.post('/posts', response_model=PostResponse)
 def create_posts(post: PostCreate, db: Session = Depends(get_db)):
     posts_dict = post.model_dump()
     new_post = models.Post(**posts_dict)
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
-    return {'data': new_post}
+    return new_post
 
-@app.get('/posts/{id}')
+
+@app.get('/posts/{id}',  response_model=PostResponse)
 def get_post(id: int, db: Session = Depends(get_db)):
     post = db.query(models.Post).filter(models.Post.id == id).first()
     validate_post(post)
-    return {'post': post}
+    return post
 
 
-@app.delete('/posts/{id}')
+@app.delete('/posts/{id}', response_model=PostResponse)
 def delete_post(id: int, db: Session = Depends(get_db)):
     post = db.query(models.Post).filter(models.Post.id == id)
     validate_post(post.first())
     post.delete()
     db.commit()
     
-    return {'post': post}
+    return post
 
 
-@app.put('/posts/{id}')
+@app.put('/posts/{id}', response_model=PostResponse)
 def update_post(post: PostCreate, id: int, db: Session = Depends(get_db)):
     update_post_query = db.query(models.Post).filter(models.Post.id == id)
     update_post = update_post_query.first()
-    
     validate_post(update_post)
     
     update_post_query.update(post.model_dump())
     db.commit()
     
     db.refresh(update_post)
-    return {'post': update_post}
+    return update_post
 
 
 # @app.get('/posts')

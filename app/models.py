@@ -11,3 +11,4 @@ class Post(Base):
     published = Column(Boolean, nullable=True, server_default='TRUE')
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
 
+    

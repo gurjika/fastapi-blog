@@ -9,3 +9,9 @@ class PostCreate(PostBase):
     pass
 
 
+class PostResponse(PostBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
