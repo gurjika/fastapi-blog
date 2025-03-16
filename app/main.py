@@ -33,13 +33,21 @@ def get_posts(db: Session = Depends(get_db)):
 
 
 
+@app.post('/posts')
+def create_posts(post: Post, db: Session = Depends(get_db)):
+    new_post = models.Post(title=post.title, content=post.content)
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
+    return {'data': new_post}
+
 
 
 # @app.get('/posts')
 # def get_posts():
 #     cursor.execute("""SELECT * FROM posts""")
 #     posts = cursor.fetchall()
-#     return {'message': posts}
+#      return {'message': posts}
 
 
 # @app.get('/posts/{id}')
