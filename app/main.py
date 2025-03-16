@@ -35,12 +35,18 @@ def get_posts(db: Session = Depends(get_db)):
 
 @app.post('/posts')
 def create_posts(post: Post, db: Session = Depends(get_db)):
-    new_post = models.Post(title=post.title, content=post.content)
+    posts_dict = post.model_dump()
+    new_post = models.Post(**posts_dict)
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
     return {'data': new_post}
 
+@app.get('/posts/{id}')
+def get_post(id: int, db: Session = Depends(get_db)):
+    post = db.query(models.Post).filter(models.Post.id == id).first()
+    validate_post(post)
+    return {'post': post}
 
 
 # @app.get('/posts')
